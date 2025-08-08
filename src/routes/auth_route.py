@@ -2,7 +2,6 @@ from flask import Blueprint
 from src.controllers.auth_controller import (
     login_controller,
     register_controller,
-    token_refresh_controller,
 )
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
@@ -18,12 +17,6 @@ def register():
 @auth_bp.route("/login", methods=["POST"])
 def login():
     return login_controller()
-
-
-# Token Refresh route
-@auth_bp.route("/refresh", methods=["POST"])
-def token_refresh():
-    return token_refresh_controller()
 
 
 # @user_bp.route("/", methods=["GET"])
