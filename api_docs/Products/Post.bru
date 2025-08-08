@@ -1,0 +1,21 @@
+meta {
+  name: Post
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://127.0.0.1:5000/api/v1/products/
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  name: Vivo V15
+  description: 8GB 512GB
+  category: Mobile
+  stock_quantity: 100
+  product_file: @file(C:\Users\mural\OneDrive\Desktop\1.png)
+  price: 10000
+  ~is_active: 1
+}
