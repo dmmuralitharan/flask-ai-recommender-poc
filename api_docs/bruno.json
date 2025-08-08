@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Flask AI Recommender POC",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
