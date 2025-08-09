@@ -1,0 +1,17 @@
+meta {
+  name: Recommend Products
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://127.0.0.1:5000/api/v1/products/recommend_products
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "user_id": 2
+  }
+}

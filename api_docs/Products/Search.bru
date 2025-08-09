@@ -1,0 +1,21 @@
+meta {
+  name: Search
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://127.0.0.1:5000/api/v1/products/search_product?q=laptop
+  body: json
+  auth: inherit
+}
+
+params:query {
+  q: laptop
+}
+
+body:json {
+  {
+    "user_id": 1
+  }
+}

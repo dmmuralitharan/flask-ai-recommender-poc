@@ -3,13 +3,16 @@ import os
 from flask import jsonify, request
 from src import db
 from src.models.product_model import Product
+from src.models.search_history_model import SearchHistory
 from src.utils.file_upload import save__file
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 def create_product_controller():
     try:
         data = request.form
-        print(data)
+
         name = data.get("name")
         description = data.get("description")
         price = data.get("price")
@@ -30,7 +33,7 @@ def create_product_controller():
 
         db.session.add(new_product)
         db.session.flush()
-        print("1")
+        
         product_file = request.files.get("product_file")
 
         if product_file:
@@ -133,7 +136,7 @@ def delete_product_controller(product_id):
 
         if not product:
             return jsonify({"status": 0, "msg": "Product not found"}), 404
-        
+
         if product.image_url and os.path.exists(product.image_url):
             os.remove(product.image_url)
 
@@ -147,3 +150,47 @@ def delete_product_controller(product_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": 0, "error": str(e)}), 500
+
+
+def search_product_controller():
+    search_query = request.args.get("q")
+
+    data = request.get_json()
+    user_id = data.get("user_id")
+
+    history = SearchHistory(
+        user_id=user_id, search_query=search_query, timestamp=datetime.now(timezone.utc)
+    )
+    db.session.add(history)
+    db.session.commit()
+
+    products = Product.query.filter(Product.name.ilike(f"%{search_query}%")).all()
+    return jsonify([p.to_dict() for p in products])
+
+
+def recommend_products_from_search_controller():
+    data = request.get_json()
+    user_id = data.get("user_id")
+
+    history = (
+        SearchHistory.query.filter_by(user_id=user_id)
+        .order_by(SearchHistory.timestamp.desc())
+        .limit(5)
+        .all()
+    )
+    search_terms = " ".join([h.search_query for h in history])
+
+    products = Product.query.all()
+    product_texts = [f"{p.name} {p.category} {p.description}" for p in products]
+
+    corpus = [search_terms] + product_texts
+
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(corpus)
+
+    similarities = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
+
+    recommended_indices = similarities.argsort()[::-1]
+    recommended_products = [products[i] for i in recommended_indices[:5]]
+
+    return [p.to_dict() for p in recommended_products]
